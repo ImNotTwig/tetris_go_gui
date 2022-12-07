@@ -1,0 +1,7 @@
+1st thing is to get the board set up and to spawn tetros above the board 
+
+then make them fall
+
+then see if they fun into something
+
+then add movement
