@@ -2,10 +2,7 @@ module tetris
 
 go 1.19
 
-require (
-	github.com/faiface/pixel v0.10.0
-	golang.org/x/image v0.0.0-20220302094943-723b81ca9867
-)
+require github.com/faiface/pixel v0.10.0
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -16,4 +13,5 @@ require (
 	github.com/go-gl/mathgl v0.0.0-20190416160123-c4601bc793c7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
+	golang.org/x/image v0.0.0-20220302094943-723b81ca9867 // indirect
 )
