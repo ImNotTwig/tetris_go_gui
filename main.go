@@ -39,7 +39,8 @@ func run() {
 	imd.Push(pixel.V(BoardWidth+Padding+BorderWidth, BoardHeight+Padding+BorderWidth))
 	imd.Rectangle(BorderWidth)
 
-	game.GetRandomTetromino()
+	game.GenerateNewBag()
+	can_drop := false
 
 	// looping to get keyboard inputs, line clears, and falling tetrominos
 	for !win.Closed() {
@@ -57,7 +58,11 @@ func run() {
 				imd.Rectangle(0)
 			}
 		}
-		game.GravityDrop()
+		if !can_drop {
+			game.SetNextTetroFromBag()
+		}
+		can_drop = game.GravityDrop()
+
 		imd.Draw(win)
 		win.Update()
 

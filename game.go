@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-func remove(slice []*Point, s int) []*Point {
-	return append(slice[:s], slice[s+1:]...)
-}
-
 func ContainsShape(sl Shape, point *Point) bool {
 	for _, v := range sl {
 		if &v == point {
@@ -31,6 +27,8 @@ type Game struct {
 
 	CurrentPiece *Tetromino
 
+	Current7Bag []*Tetromino
+
 	Score int
 
 	Level int
@@ -46,28 +44,89 @@ func NewGame() Game {
 	return Game{
 		PlayingBoard:       NewBoard(),
 		CurrentPiece:       nil,
+		Current7Bag:        nil,
 		Score:              0,
 		Level:              0,
 		GameOver:           false,
 		Paused:             false,
-		FallingSpeedMillis: 500,
+		FallingSpeedMillis: 200,
+	}
+}
+
+func (g *Game) GenerateNewBag() {
+	if g.Current7Bag == nil || len(g.Current7Bag) == 0 {
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		tetro_list := []*Tetromino{
+			{
+				Tetro: Tetro(1),
+				Shape: Tetro(1).TetroToNewShape(),
+				Color: Tetro(1).TetroToColor(),
+			},
+			{
+				Tetro: Tetro(2),
+				Shape: Tetro(2).TetroToNewShape(),
+				Color: Tetro(2).TetroToColor(),
+			},
+			{
+				Tetro: Tetro(3),
+				Shape: Tetro(3).TetroToNewShape(),
+				Color: Tetro(3).TetroToColor(),
+			},
+			{
+				Tetro: Tetro(4),
+				Shape: Tetro(4).TetroToNewShape(),
+				Color: Tetro(4).TetroToColor(),
+			},
+			{
+				Tetro: Tetro(5),
+				Shape: Tetro(5).TetroToNewShape(),
+				Color: Tetro(5).TetroToColor(),
+			},
+			{
+				Tetro: Tetro(6),
+				Shape: Tetro(6).TetroToNewShape(),
+				Color: Tetro(6).TetroToColor(),
+			},
+			{
+				Tetro: Tetro(7),
+				Shape: Tetro(7).TetroToNewShape(),
+				Color: Tetro(7).TetroToColor(),
+			},
+		}
+
+		r.Shuffle(len(tetro_list), func(i, j int) {
+			tetro_list[i], tetro_list[j] = tetro_list[j], tetro_list[i]
+		})
+
+		g.Current7Bag = tetro_list
+	}
+}
+
+func (g *Game) SetNextTetroFromBag() {
+	if len(g.Current7Bag) > 0 {
+		g.CurrentPiece = g.Current7Bag[0]
+		for i := 0; i < len(g.CurrentPiece.Shape); i++ {
+			g.PlayingBoard[g.CurrentPiece.Shape[i].Row][g.CurrentPiece.Shape[i].Col] = Pixel(g.CurrentPiece.Tetro)
+		}
+		g.Current7Bag = g.Current7Bag[1:]
+	} else {
+		g.GenerateNewBag()
 	}
 }
 
 func (g *Game) GetRandomTetromino() {
-	if g.CurrentPiece == nil {
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		random_number := r.Intn(7) + 1
 
-		shape := Tetro(random_number).TetroToNewShape()
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	random_number := r.Intn(7) + 1
 
-		g.CurrentPiece = &Tetromino{
-			Color: Tetro(random_number).TetroToColor(),
-			Shape: shape,
-			Tetro: Tetro(random_number),
-		}
-		println(Tetro(random_number))
+	shape := Tetro(random_number).TetroToNewShape()
+
+	g.CurrentPiece = &Tetromino{
+		Color: Tetro(random_number).TetroToColor(),
+		Shape: shape,
+		Tetro: Tetro(random_number),
 	}
+
 	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
 		g.PlayingBoard[g.CurrentPiece.Shape[i].Row][g.CurrentPiece.Shape[i].Col] = Pixel(g.CurrentPiece.Tetro)
 	}
@@ -84,7 +143,7 @@ func (g *Game) GravityDrop() bool {
 		} else {
 			for j := 0; j < len(lowest_points); j++ {
 				if lowest_points[j].Row > g.CurrentPiece.Shape[i].Row {
-					remove(lowest_points, j)
+					lowest_points = []*Point{}
 					lowest_points = append(lowest_points, &g.CurrentPiece.Shape[i])
 					break
 				} else if lowest_points[j].Row == g.CurrentPiece.Shape[i].Row {
@@ -98,11 +157,14 @@ func (g *Game) GravityDrop() bool {
 	for i := 0; i < len(lowest_points); i++ {
 		for j := 0; j < len(g.CurrentPiece.Shape); j++ {
 			if g.CurrentPiece.Shape[j].Row-1 < 0 {
-				return false 
+				return false
 			}
 		}
 		if g.PlayingBoard[lowest_points[i].Row-1][lowest_points[i].Col] != Pixel(0) && !ContainsShape(g.CurrentPiece.Shape, lowest_points[i]) && !ContainsSlice(lowest_points, lowest_points[i]) {
-			return false 
+			return false
+		}
+		if g.PlayingBoard[lowest_points[i].Row-1][lowest_points[i].Col] != Pixel(0) {
+			return false
 		}
 	}
 
