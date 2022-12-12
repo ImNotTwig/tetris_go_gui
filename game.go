@@ -49,7 +49,7 @@ func NewGame() Game {
 		Level:              0,
 		GameOver:           false,
 		Paused:             false,
-		FallingSpeedMillis: 200,
+		FallingSpeedMillis: 300,
 	}
 }
 
@@ -168,10 +168,8 @@ func (g *Game) GravityDrop() bool {
 		}
 	}
 
-	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
-		if g.CheckIfSomethingUnder(g.CurrentPiece.Shape) {
-			return false
-		}
+	if g.CheckIfSomethingUnder(g.CurrentPiece.Shape) {
+		return false
 	}
 
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
@@ -193,10 +191,8 @@ func (g *Game) MoveRight() bool {
 		}
 	}
 
-	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
-		if g.CheckIfSomethingRight(g.CurrentPiece.Shape) {
-			return false
-		}
+	if g.CheckIfSomethingRight(g.CurrentPiece.Shape) {
+		return false
 	}
 
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
@@ -218,10 +214,8 @@ func (g *Game) MoveLeft() bool {
 		}
 	}
 
-	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
-		if g.CheckIfSomethingLeft(g.CurrentPiece.Shape) {
-			return false
-		}
+	if g.CheckIfSomethingLeft(g.CurrentPiece.Shape) {
+		return false
 	}
 
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
@@ -236,7 +230,7 @@ func (g *Game) MoveLeft() bool {
 	return true
 }
 
-func (g *Game) RotateClockWise() {
+func (g *Game) RotateClockWise() bool {
 	var retShape Shape
 	pivot := g.CurrentPiece.Shape[1]
 	retShape[1] = pivot
@@ -286,7 +280,7 @@ func (g *Game) RotateClockWise() {
 				Row: retShape[i].Row,
 				Col: retShape[i].Col,
 			}) {
-			return
+			return false
 		}
 	}
 
@@ -299,5 +293,5 @@ func (g *Game) RotateClockWise() {
 	for i := 0; i < 4; i++ {
 		g.PlayingBoard[g.CurrentPiece.Shape[i].Row][g.CurrentPiece.Shape[i].Col] = Pixel(g.CurrentPiece.Tetro)
 	}
-
+	return true
 }

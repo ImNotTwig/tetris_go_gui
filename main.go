@@ -14,9 +14,13 @@ const (
 	SideWindowVerticalPadding   = BoardHeight + Padding + BorderWidth - BoardHeight/4
 	BorderWidth                 = 3
 	BoardWidth                  = 300
-	BoardHeight                 = 600
+	BoardHeight                 = BoardWidth * 2
 	Padding                     = BoardWidth / 20
 	PixelScale                  = BoardWidth / 10 // 50
+)
+
+var (
+	line_cleared bool
 )
 
 func run() {
@@ -45,8 +49,6 @@ func run() {
 
 	hard_dropped := false
 
-	// looping to get keyboard inputs, line clears, and falling tetrominos
-	win.Clear(color.RGBA{30, 30, 46, 255})
 	imd.Color = color.RGBA{100, 100, 100, 100}
 	imd.Push(pixel.V(Padding, Padding))
 	imd.Push(pixel.V(BoardWidth+Padding+BorderWidth, BoardHeight+Padding+BorderWidth))
@@ -55,6 +57,9 @@ func run() {
 	imd.Push(pixel.V(SideWindowHorizontalPadding, SideWindowVerticalPadding))
 	imd.Push(pixel.V((SideWindowHorizontalPadding)+BoardWidth/2, BoardHeight+Padding+BorderWidth))
 	imd.Rectangle(BorderWidth)
+
+	// TODO: CHECK IF WE SHOULD LOCK THE CURRENT PIECE BY CHECKING IF ITS AFTER A CERTAIN TIME,
+	// BUT BEFORE ANOTHER
 
 	for !win.Closed() {
 		if game.GameOver {
@@ -67,37 +72,42 @@ func run() {
 		if game.Current7Bag != nil && len(game.Current7Bag) > 0 {
 
 		}
+		if !line_cleared {
+			if win.Pressed(pixelgl.KeyRight) {
+				if !game.CheckIfSomethingRight(game.CurrentPiece.Shape) && time.Now().After(move_time.Add(time.Millisecond*time.Duration(50))) && !hard_dropped {
 
-		if win.Pressed(pixelgl.KeyRight) {
-			if !game.CheckIfSomethingRight(game.CurrentPiece.Shape) && time.Now().After(move_time.Add(time.Millisecond*time.Duration(50))) && !hard_dropped {
-				move_time = time.Now()
-				game.MoveRight()
+					move_time = time.Now()
+					game.MoveRight()
+				}
 			}
-		}
-		if win.JustPressed(pixelgl.KeyRight) || win.JustPressed(pixelgl.KeyLeft) || win.JustPressed(pixelgl.KeyDown) {
-			lock_time = time.Now()
-		}
-		if win.Pressed(pixelgl.KeyLeft) {
-			if !game.CheckIfSomethingLeft(game.CurrentPiece.Shape) && time.Now().After(move_time.Add(time.Millisecond*time.Duration(50))) && !hard_dropped {
-				move_time = time.Now()
-				game.MoveLeft()
+			if win.JustPressed(pixelgl.KeyRight) || win.JustPressed(pixelgl.KeyLeft) || win.JustPressed(pixelgl.KeyDown) {
+				lock_time = time.Now()
 			}
-		}
-		if win.Pressed(pixelgl.KeyDown) {
-			can_drop = game.GravityDrop()
-			if !can_drop && time.Now().After(lock_time.Add(time.Millisecond*time.Duration(100))) && !hard_dropped {
+			if win.Pressed(pixelgl.KeyLeft) {
+				if !game.CheckIfSomethingLeft(game.CurrentPiece.Shape) && time.Now().After(move_time.Add(time.Millisecond*time.Duration(50))) && !hard_dropped {
+					move_time = time.Now()
+					game.MoveLeft()
+				}
+			}
+			if win.Pressed(pixelgl.KeyDown) {
+				can_drop = game.GravityDrop()
+				if !can_drop && time.Now().After(lock_time.Add(time.Millisecond*time.Duration(100))) && !hard_dropped {
+					can_drop = false
+				}
+			}
+			if win.JustPressed(pixelgl.KeySpace) {
+				for game.GravityDrop() {
+				}
 				can_drop = false
+				hard_dropped = true
+			}
+			if win.JustPressed(pixelgl.KeyUp) {
+				if game.RotateClockWise() && time.Now().After(lock_time.Add(time.Millisecond*time.Duration(50))) && !hard_dropped {
+					lock_time = time.Now()
+				}
 			}
 		}
-		if win.JustPressed(pixelgl.KeySpace) {
-			for game.GravityDrop() {
-			}
-			can_drop = false
-			hard_dropped = true
-		}
-		if win.JustPressed(pixelgl.KeyUp) {
-			game.RotateClockWise()
-		}
+
 		// setting all the pixels
 		for i := 0; i < 24; i++ {
 			for j := 0; j < 10; j++ {
@@ -119,7 +129,7 @@ func run() {
 			drop_time = time.Now()
 			if !can_drop && time.Now().After(lock_time.Add(time.Millisecond*time.Duration(200))) {
 				for i := 0; i < len(game.PlayingBoard[20]); i++ {
-					if game.PlayingBoard[20][i] != Pixel(0) && time.Now().After(lock_time.Add(time.Millisecond*time.Duration(100))) {
+					if game.PlayingBoard[20][i] != Pixel(0) && time.Now().After(lock_time.Add(time.Millisecond*time.Duration(200))) && !line_cleared {
 						game.GameOver = true
 					}
 				}
@@ -128,10 +138,11 @@ func run() {
 				lock_time = time.Now()
 			}
 		}
+		line_cleared = false
 		// checking for lines that need to be cleared
 		for i := 0; i < len(game.PlayingBoard); i++ {
 			if !can_drop {
-				line_cleared := true
+				line_cleared = true
 				var starting_line int
 				for j := 0; j < len(game.PlayingBoard[i]); j++ {
 					starting_line = i
@@ -142,31 +153,31 @@ func run() {
 				}
 
 				if line_cleared {
+					should_can_drop_be_true := can_drop
+					can_drop = false
 					for j := 0; j < len(game.PlayingBoard[i]); j++ {
 						game.PlayingBoard[i][j] = Pixel(0)
 					}
-					for j := starting_line; j < len(game.PlayingBoard)-starting_line; j++ {
-						if j+1 < 20 {
-							var line_pixel_list []Pixel
-							for h := 0; h < len(game.PlayingBoard[j+1]); h++ {
-								line_pixel_list = append(line_pixel_list, game.PlayingBoard[j+1][h])
-							}
-							for h := 0; h < len(game.PlayingBoard[j]); h++ {
-
-								game.PlayingBoard[j][h] = line_pixel_list[h]
-
-							}
+					for j := starting_line; j < 21; j++ {
+						var line_pixel_list []Pixel
+						for h := 0; h < len(game.PlayingBoard[j+1]); h++ {
+							line_pixel_list = append(line_pixel_list, game.PlayingBoard[j+1][h])
 						}
+						for h := 0; h < len(game.PlayingBoard[j]); h++ {
+							game.PlayingBoard[j][h] = line_pixel_list[h]
+						}
+						lock_time = time.Now()
 					}
+					can_drop = should_can_drop_be_true
 				}
 			}
 		}
 
 		imd.Draw(win)
 		win.Update()
+		win.Clear(color.RGBA{30, 30, 46, 255})
 		imd.Clear()
 	}
-
 }
 
 func main() {

@@ -113,7 +113,7 @@ func (t Tetro) TetroToColor() color.RGBA {
 	switch t {
 	// nothing
 	case 0:
-		return color.RGBA{30, 30, 46, 255}
+		return color.RGBA{49, 50, 68, 255}
 
 		// O
 	case 1:
