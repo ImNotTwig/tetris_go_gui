@@ -253,8 +253,12 @@ func (g *Game) RotateClockWise() {
 
 	for i := 0; i < len(retShape); i++ {
 		if retShape[i].Row < 0 {
-			for j := 0; j < len(retShape); j++ {
-				retShape[j].Row -= (retShape[i].Row)
+			sub := retShape[i].Row
+			for sub < 0 {
+				for j := 0; j < len(retShape); j++ {
+					retShape[j].Row += 1
+				}
+				sub++
 			}
 			break
 		} else if retShape[i].Col < 0 {
@@ -276,6 +280,13 @@ func (g *Game) RotateClockWise() {
 				sub--
 			}
 			break
+		}
+		if g.PlayingBoard[retShape[i].Row][retShape[i].Col] != Pixel(0) &&
+			!ContainsShape(g.CurrentPiece.Shape, &Point{
+				Row: retShape[i].Row,
+				Col: retShape[i].Col,
+			}) {
+			return
 		}
 	}
 
