@@ -26,10 +26,9 @@ type Tetro int
 // Z: 7
 
 // a shape is a list of points, usually 4, that makes up a tetromino
-type Shape []Point
+type Shape [4]Point
 
 type Tetromino struct {
-	Color color.RGBA
 	Shape Shape
 	Tetro Tetro
 }
