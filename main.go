@@ -40,10 +40,16 @@ func run() {
 
 	game := NewGame()
 
+	monitor_width, monitor_height := pixelgl.PrimaryMonitor().PhysicalSize()
+	if err != nil {
+		panic(err)
+	}
+
 	cfg := pixelgl.WindowConfig{
-		Title:  "Tetris",
-		Bounds: pixel.R(0, 0, BoardWidth+100, BoardHeight),
-		VSync:  true,
+		Monitor: pixelgl.PrimaryMonitor(),
+		Title:   "Tetris",
+		Bounds:  pixel.R(0, 0, monitor_width, monitor_height),
+		VSync:   true,
 	}
 	win, err := pixelgl.NewWindow(cfg)
 	if err != nil {
@@ -141,9 +147,9 @@ func run() {
 				} else {
 					imd.Color = pixel.ToRGBA(color.Transparent)
 				}
-				imd.Push(pixel.V(float64(PixelScale*j+Padding+(BorderWidth*2)), float64(PixelScale*i+Padding+(BorderWidth*2))))
+				imd.Push(pixel.V(float64(PixelScale*j+Padding+(BorderWidth*2)+int((win.Bounds().W()/2)-(BoardWidth/2))), float64(PixelScale*i+Padding+(BorderWidth*2)+int((win.Bounds().H()/2)-(BoardHeight/2)))))
 
-				imd.Push(pixel.V(float64((PixelScale*j)+PixelScale+Padding/2+BorderWidth/2), float64((PixelScale*i)+PixelScale+Padding/2+BorderWidth/2)))
+				imd.Push(pixel.V(float64((PixelScale*j)+PixelScale+Padding/2+BorderWidth/2+int((win.Bounds().W()/2)-(BoardWidth/2))), float64((PixelScale*i)+PixelScale+Padding/2+BorderWidth/2+int((win.Bounds().H()/2)-(BoardHeight/2)))))
 
 				imd.Rectangle(0)
 			}
@@ -153,8 +159,8 @@ func run() {
 		}
 
 		imd.Color = color.RGBA{100, 100, 100, 100}
-		imd.Push(pixel.V(Padding, Padding))
-		imd.Push(pixel.V(BoardWidth+Padding+BorderWidth, BoardHeight+Padding+BorderWidth))
+		imd.Push(pixel.V(Padding+(win.Bounds().W()/2)-(BoardWidth/2), Padding+(win.Bounds().H()/2)-(BoardHeight/2)))
+		imd.Push(pixel.V(BoardWidth+Padding+BorderWidth+(win.Bounds().W()/2)-(BoardWidth/2), BoardHeight+Padding+BorderWidth+(win.Bounds().H()/2)-(BoardHeight/2)))
 		imd.Rectangle(BorderWidth)
 
 		if len(game.Current7Bag) < 1 || game.Current7Bag == nil {
@@ -171,12 +177,12 @@ func run() {
 		for i := 0; i < 4; i++ {
 			for j := 0; j < 4; j++ {
 				imd.Color = pixel.ToRGBA(game.Current7Bag[0].Tetro.TetroToColor())
-				imd.Push(pixel.V(float64(SideWindowHorizontalPadding+shape[i].Col*PixelScale+PixelScale+Padding), float64(SideWindowVerticalPadding+PixelScale+shape[i].Row*PixelScale+Padding)))
-				imd.Push(pixel.V(float64(PixelScale+PixelScale+SideWindowHorizontalPadding+shape[i].Col*PixelScale), float64(PixelScale+PixelScale+SideWindowVerticalPadding+shape[i].Row*PixelScale)))
+				imd.Push(pixel.V(float64(SideWindowHorizontalPadding+shape[i].Col*PixelScale+PixelScale+Padding+int((win.Bounds().W()/2)-(BoardWidth/2))), float64(SideWindowVerticalPadding+PixelScale+shape[i].Row*PixelScale+Padding+int((win.Bounds().H()/2)-(BoardHeight/2)))))
+				imd.Push(pixel.V(float64(PixelScale+PixelScale+SideWindowHorizontalPadding+shape[i].Col*PixelScale+int((win.Bounds().W()/2)-(BoardWidth/2))), float64(PixelScale+PixelScale+SideWindowVerticalPadding+shape[i].Row*PixelScale+int((win.Bounds().H()/2)-(BoardHeight/2)))))
 				imd.Rectangle(0)
 			}
 		}
-		txt := text.New(pixel.V(float64(SideWindowHorizontalPadding+PixelScale), float64(PixelScale+PixelScale+SideWindowVerticalPadding+2*PixelScale)), atlas)
+		txt := text.New(pixel.V(float64(SideWindowHorizontalPadding+PixelScale+(win.Bounds().W()/2)-(BoardWidth/2)), float64(PixelScale+PixelScale+SideWindowVerticalPadding+2*PixelScale+(win.Bounds().H()/2)-(BoardHeight/2))), atlas)
 		fmt.Fprint(txt, "Next")
 		txt.Draw(win, pixel.IM)
 
