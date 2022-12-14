@@ -55,6 +55,12 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
+
+	var (
+		WidthSubForFullScreen  = (win.Bounds().W() / 2) - (BoardWidth / 2)
+		HeightSubForFullScreen = (win.Bounds().H() / 2) - (BoardHeight / 2)
+	)
+
 	win.SetSmooth(true)
 
 	imd := imdraw.New(nil)
@@ -108,6 +114,14 @@ func run() {
 					lock_time = time.Now()
 				}
 			}
+			if win.JustPressed(pixelgl.KeyC) {
+				if time.Now().After(move_time.Add(time.Millisecond * time.Duration(50))) {
+					game.HoldTetro()
+					move_time = time.Now()
+					lock_time = time.Now()
+					game.CanHold = false
+				}
+			}
 		} else if line_cleared && hard_dropped {
 			lock_time = time.Now()
 		}
@@ -118,6 +132,7 @@ func run() {
 				drop_time = time.Now()
 			}
 			if !can_drop && time.Now().After(lock_time.Add(time.Millisecond*time.Duration(200))) {
+				game.CanHold = true
 				all_lines_filled := 0
 				for i := 0; i < len(game.PlayingBoard); i++ {
 					for j := 0; j < 10; j++ {
@@ -147,9 +162,9 @@ func run() {
 				} else {
 					imd.Color = pixel.ToRGBA(color.Transparent)
 				}
-				imd.Push(pixel.V(float64(PixelScale*j+Padding+(BorderWidth*2)+int((win.Bounds().W()/2)-(BoardWidth/2))), float64(PixelScale*i+Padding+(BorderWidth*2)+int((win.Bounds().H()/2)-(BoardHeight/2)))))
+				imd.Push(pixel.V(float64(PixelScale*j+Padding+(BorderWidth*2)+int(WidthSubForFullScreen)), float64(PixelScale*i+Padding+(BorderWidth*2)+int(HeightSubForFullScreen))))
 
-				imd.Push(pixel.V(float64((PixelScale*j)+PixelScale+Padding/2+BorderWidth/2+int((win.Bounds().W()/2)-(BoardWidth/2))), float64((PixelScale*i)+PixelScale+Padding/2+BorderWidth/2+int((win.Bounds().H()/2)-(BoardHeight/2)))))
+				imd.Push(pixel.V(float64((PixelScale*j)+PixelScale+Padding/2+BorderWidth/2+int(WidthSubForFullScreen)), float64((PixelScale*i)+PixelScale+Padding/2+BorderWidth/2+int(HeightSubForFullScreen))))
 
 				imd.Rectangle(0)
 			}
@@ -159,8 +174,8 @@ func run() {
 		}
 
 		imd.Color = color.RGBA{100, 100, 100, 100}
-		imd.Push(pixel.V(Padding+(win.Bounds().W()/2)-(BoardWidth/2), Padding+(win.Bounds().H()/2)-(BoardHeight/2)))
-		imd.Push(pixel.V(BoardWidth+Padding+BorderWidth+(win.Bounds().W()/2)-(BoardWidth/2), BoardHeight+Padding+BorderWidth+(win.Bounds().H()/2)-(BoardHeight/2)))
+		imd.Push(pixel.V(Padding+WidthSubForFullScreen, Padding+HeightSubForFullScreen))
+		imd.Push(pixel.V(BoardWidth+Padding+BorderWidth+WidthSubForFullScreen, BoardHeight+Padding+BorderWidth+HeightSubForFullScreen))
 		imd.Rectangle(BorderWidth)
 
 		if len(game.Current7Bag) < 1 || game.Current7Bag == nil {
@@ -177,14 +192,34 @@ func run() {
 		for i := 0; i < 4; i++ {
 			for j := 0; j < 4; j++ {
 				imd.Color = pixel.ToRGBA(game.Current7Bag[0].Tetro.TetroToColor())
-				imd.Push(pixel.V(float64(SideWindowHorizontalPadding+shape[i].Col*PixelScale+PixelScale+Padding+int((win.Bounds().W()/2)-(BoardWidth/2))), float64(SideWindowVerticalPadding+PixelScale+shape[i].Row*PixelScale+Padding+int((win.Bounds().H()/2)-(BoardHeight/2)))))
-				imd.Push(pixel.V(float64(PixelScale+PixelScale+SideWindowHorizontalPadding+shape[i].Col*PixelScale+int((win.Bounds().W()/2)-(BoardWidth/2))), float64(PixelScale+PixelScale+SideWindowVerticalPadding+shape[i].Row*PixelScale+int((win.Bounds().H()/2)-(BoardHeight/2)))))
+				imd.Push(pixel.V(float64(SideWindowHorizontalPadding+shape[i].Col*PixelScale+PixelScale+Padding+int(WidthSubForFullScreen)), float64(SideWindowVerticalPadding+PixelScale+shape[i].Row*PixelScale+Padding+int(HeightSubForFullScreen))))
+				imd.Push(pixel.V(float64(PixelScale+PixelScale+SideWindowHorizontalPadding+shape[i].Col*PixelScale+int(WidthSubForFullScreen)), float64(PixelScale+PixelScale+SideWindowVerticalPadding+shape[i].Row*PixelScale+int(HeightSubForFullScreen))))
 				imd.Rectangle(0)
 			}
 		}
-		txt := text.New(pixel.V(float64(SideWindowHorizontalPadding+PixelScale+(win.Bounds().W()/2)-(BoardWidth/2)), float64(PixelScale+PixelScale+SideWindowVerticalPadding+2*PixelScale+(win.Bounds().H()/2)-(BoardHeight/2))), atlas)
+		txt := text.New(pixel.V(float64(SideWindowHorizontalPadding+PixelScale+WidthSubForFullScreen), float64(PixelScale+PixelScale+SideWindowVerticalPadding+2*PixelScale+HeightSubForFullScreen)), atlas)
 		fmt.Fprint(txt, "Next")
 		txt.Draw(win, pixel.IM)
+
+		if game.HeldPiece != 0 {
+			shape := Tetro(game.HeldPiece).TetroToNewShape()
+			for i := 0; i < len(shape); i++ {
+				shape[i].Col -= 4
+				shape[i].Row -= 22
+			}
+
+			for i := 0; i < 4; i++ {
+				for j := 0; j < 4; j++ {
+					imd.Color = pixel.ToRGBA(Tetro(game.HeldPiece).TetroToColor())
+					imd.Push(pixel.V(float64(-(SideWindowHorizontalPadding/2)+(shape[i].Col*PixelScale)+(PixelScale+Padding)+int(WidthSubForFullScreen)), float64((SideWindowVerticalPadding)+(PixelScale+Padding)+(shape[i].Row*PixelScale)+int(HeightSubForFullScreen))))
+					imd.Push(pixel.V(float64(PixelScale+PixelScale-SideWindowHorizontalPadding/2+shape[i].Col*PixelScale+int(WidthSubForFullScreen)), float64(PixelScale+PixelScale+SideWindowVerticalPadding+shape[i].Row*PixelScale+int(HeightSubForFullScreen))))
+					imd.Rectangle(0)
+				}
+			}
+			txt := text.New(pixel.V(float64(-SideWindowHorizontalPadding/2+PixelScale+WidthSubForFullScreen), float64(PixelScale+PixelScale+SideWindowVerticalPadding+2*PixelScale+HeightSubForFullScreen)), atlas)
+			fmt.Fprint(txt, "Held")
+			txt.Draw(win, pixel.IM)
+		}
 
 		imd.Draw(win)
 		win.Update()

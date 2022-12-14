@@ -27,6 +27,10 @@ type Game struct {
 
 	CurrentPiece *Tetromino
 
+	HeldPiece int
+
+	CanHold bool
+
 	Current7Bag []*Tetromino
 
 	Score int
@@ -44,6 +48,8 @@ func NewGame() Game {
 	return Game{
 		PlayingBoard:       NewBoard(),
 		CurrentPiece:       nil,
+		HeldPiece:          0,
+		CanHold:            true,
 		Current7Bag:        nil,
 		Score:              0,
 		Level:              0,
@@ -353,4 +359,30 @@ func (game *Game) check_lines() bool {
 		}
 	}
 	return line_cleared
+}
+
+func (g *Game) HoldTetro() {
+	if !g.CanHold {
+		return
+	}
+	if g.HeldPiece != 0 {
+		for i := 0; i < len(g.CurrentPiece.Shape); i++ {
+			g.PlayingBoard[g.CurrentPiece.Shape[i]] = Pixel(0)
+		}
+		temp := g.HeldPiece
+		g.HeldPiece = int(g.CurrentPiece.Tetro)
+		g.CurrentPiece = &Tetromino{
+			Tetro: Tetro(temp),
+			Shape: Tetro(temp).TetroToNewShape(),
+		}
+		//g.HeldPiece = int(g.CurrentPiece.Tetro)
+	} else {
+		for i := 0; i < len(g.CurrentPiece.Shape); i++ {
+			g.PlayingBoard[g.CurrentPiece.Shape[i]] = Pixel(0)
+		}
+		g.HeldPiece = int(g.CurrentPiece.Tetro)
+
+		g.SetNextTetroFromBag()
+	}
+
 }
