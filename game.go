@@ -99,7 +99,7 @@ func (g *Game) SetNextTetroFromBag() {
 	if len(g.Current7Bag) > 0 {
 		g.CurrentPiece = g.Current7Bag[0]
 		for i := 0; i < len(g.CurrentPiece.Shape); i++ {
-			g.PlayingBoard[g.CurrentPiece.Shape[i].Row][g.CurrentPiece.Shape[i].Col] = Pixel(g.CurrentPiece.Tetro)
+			g.PlayingBoard[Point{g.CurrentPiece.Shape[i].Row, g.CurrentPiece.Shape[i].Col}] = Pixel(g.CurrentPiece.Tetro)
 		}
 		g.Current7Bag = g.Current7Bag[1:]
 	} else {
@@ -120,7 +120,7 @@ func (g *Game) GetRandomTetromino() {
 	}
 
 	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
-		g.PlayingBoard[g.CurrentPiece.Shape[i].Row][g.CurrentPiece.Shape[i].Col] = Pixel(g.CurrentPiece.Tetro)
+		g.PlayingBoard[Point{g.CurrentPiece.Shape[i].Row, g.CurrentPiece.Shape[i].Col}] = Pixel(g.CurrentPiece.Tetro)
 	}
 }
 
@@ -129,7 +129,7 @@ func (g *Game) CheckIfSomethingUnder(s Shape) bool {
 		x := s[i].Col
 		y := s[i].Row
 		if y != 0 {
-			if g.PlayingBoard[y-1][x] != Pixel(0) && !ContainsShape(s, &Point{Row: y - 1, Col: x}) {
+			if g.PlayingBoard[Point{y - 1, x}] != Pixel(0) && !ContainsShape(s, &Point{Row: y - 1, Col: x}) {
 				return true
 			}
 		}
@@ -138,10 +138,9 @@ func (g *Game) CheckIfSomethingUnder(s Shape) bool {
 }
 func (g *Game) CheckIfSomethingRight(s Shape) bool {
 	for i := 0; i < len(s); i++ {
-		x := s[i].Col
-		y := s[i].Row
-		if x+1 < 10 {
-			if g.PlayingBoard[y][x+1] != Pixel(0) && !ContainsShape(s, &Point{Row: y, Col: x + 1}) {
+		if s[i].Col+1 < 10 {
+			if g.PlayingBoard[Point{s[i].Row, s[i].Col + 1}] != Pixel(0) &&
+				!ContainsShape(s, &Point{Row: s[i].Row, Col: s[i].Col + 1}) {
 				return true
 			}
 		}
@@ -150,10 +149,9 @@ func (g *Game) CheckIfSomethingRight(s Shape) bool {
 }
 func (g *Game) CheckIfSomethingLeft(s Shape) bool {
 	for i := 0; i < len(s); i++ {
-		x := s[i].Col
-		y := s[i].Row
-		if x-1 > 0 {
-			if g.PlayingBoard[y][x-1] != Pixel(0) && !ContainsShape(s, &Point{Row: y, Col: x - 1}) {
+		if s[i].Col-1 > 0 {
+			if g.PlayingBoard[Point{s[i].Row, s[i].Col - 1}] != Pixel(0) &&
+				!ContainsShape(s, &Point{Row: s[i].Row, Col: s[i].Col - 1}) {
 				return true
 			}
 		}
@@ -173,10 +171,10 @@ func (g *Game) GravityDrop() bool {
 	}
 
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
-		g.PlayingBoard[g.CurrentPiece.Shape[j].Row][g.CurrentPiece.Shape[j].Col] = Pixel(0)
+		g.PlayingBoard[Point{g.CurrentPiece.Shape[j].Row, g.CurrentPiece.Shape[j].Col}] = Pixel(0)
 	}
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
-		g.PlayingBoard[g.CurrentPiece.Shape[j].Row-1][g.CurrentPiece.Shape[j].Col] = Pixel(g.CurrentPiece.Tetro)
+		g.PlayingBoard[Point{g.CurrentPiece.Shape[j].Row - 1, g.CurrentPiece.Shape[j].Col}] = Pixel(g.CurrentPiece.Tetro)
 	}
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
 		g.CurrentPiece.Shape[j].Row -= 1
@@ -196,10 +194,10 @@ func (g *Game) MoveRight() bool {
 	}
 
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
-		g.PlayingBoard[g.CurrentPiece.Shape[j].Row][g.CurrentPiece.Shape[j].Col] = Pixel(0)
+		g.PlayingBoard[Point{g.CurrentPiece.Shape[j].Row, g.CurrentPiece.Shape[j].Col}] = Pixel(0)
 	}
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
-		g.PlayingBoard[g.CurrentPiece.Shape[j].Row][g.CurrentPiece.Shape[j].Col+1] = Pixel(g.CurrentPiece.Tetro)
+		g.PlayingBoard[Point{g.CurrentPiece.Shape[j].Row, g.CurrentPiece.Shape[j].Col + 1}] = Pixel(g.CurrentPiece.Tetro)
 	}
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
 		g.CurrentPiece.Shape[j].Col += 1
@@ -219,10 +217,10 @@ func (g *Game) MoveLeft() bool {
 	}
 
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
-		g.PlayingBoard[g.CurrentPiece.Shape[j].Row][g.CurrentPiece.Shape[j].Col] = Pixel(0)
+		g.PlayingBoard[Point{g.CurrentPiece.Shape[j].Row, g.CurrentPiece.Shape[j].Col}] = Pixel(0)
 	}
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
-		g.PlayingBoard[g.CurrentPiece.Shape[j].Row][g.CurrentPiece.Shape[j].Col-1] = Pixel(g.CurrentPiece.Tetro)
+		g.PlayingBoard[Point{g.CurrentPiece.Shape[j].Row, g.CurrentPiece.Shape[j].Col - 1}] = Pixel(g.CurrentPiece.Tetro)
 	}
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
 		g.CurrentPiece.Shape[j].Col -= 1
@@ -230,8 +228,18 @@ func (g *Game) MoveLeft() bool {
 	return true
 }
 
+func (g *Game) ClearShape() {
+	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
+		g.PlayingBoard[Point{g.CurrentPiece.Shape[i].Row, g.CurrentPiece.Shape[i].Col}] = Pixel(0)
+	}
+	g.CurrentPiece.Shape = Shape{}
+}
+
 func (g *Game) RotateClockWise() bool {
 	var retShape Shape
+	for i := 0; i < 4; i++ {
+		retShape = append(retShape, Point{0, 0})
+	}
 	pivot := g.CurrentPiece.Shape[1]
 	retShape[1] = pivot
 	for i := 0; i < 4; i++ {
@@ -257,7 +265,7 @@ func (g *Game) RotateClockWise() bool {
 			break
 		} else if retShape[i].Col < 0 {
 			sub := retShape[i].Col
-			for sub < 0 {
+			for sub <= 0 {
 				for j := 0; j < len(retShape); j++ {
 					retShape[j].Col += 1
 				}
@@ -275,7 +283,17 @@ func (g *Game) RotateClockWise() bool {
 			}
 			break
 		}
-		if g.PlayingBoard[retShape[i].Row][retShape[i].Col] != Pixel(0) &&
+		if retShape[i].Row >= 24 {
+			sub := retShape[i].Row
+			for sub >= 24 {
+				for j := 0; j < len(retShape); j++ {
+					retShape[j].Row -= 1
+				}
+				sub--
+			}
+			break
+		}
+		if g.PlayingBoard[Point{retShape[i].Row, retShape[i].Col}] != Pixel(0) &&
 			!ContainsShape(g.CurrentPiece.Shape, &Point{
 				Row: retShape[i].Row,
 				Col: retShape[i].Col,
@@ -285,13 +303,54 @@ func (g *Game) RotateClockWise() bool {
 	}
 
 	for i := 0; i < 4; i++ {
-		g.PlayingBoard[g.CurrentPiece.Shape[i].Row][g.CurrentPiece.Shape[i].Col] = Pixel(0)
+		g.PlayingBoard[Point{g.CurrentPiece.Shape[i].Row, g.CurrentPiece.Shape[i].Col}] = Pixel(0)
 	}
 
 	g.CurrentPiece.Shape = retShape
 
 	for i := 0; i < 4; i++ {
-		g.PlayingBoard[g.CurrentPiece.Shape[i].Row][g.CurrentPiece.Shape[i].Col] = Pixel(g.CurrentPiece.Tetro)
+		g.PlayingBoard[Point{g.CurrentPiece.Shape[i].Row, g.CurrentPiece.Shape[i].Col}] = Pixel(g.CurrentPiece.Tetro)
 	}
 	return true
+}
+
+func (game *Game) check_lines() bool {
+	lines := make([]int, 0)
+	for i := 0; i < len(game.PlayingBoard); i++ {
+		line_cleared = true
+		for j := 0; j < 10; j++ {
+			if game.PlayingBoard[Point{i, j}] == Pixel(0) {
+				line_cleared = false
+			}
+		}
+		if line_cleared {
+			lines = append(lines, i)
+		}
+	}
+
+	lines_length := len(lines)
+	println("length", lines_length)
+	for line := 0; line < len(lines); line++ {
+		println("line: ", lines[line])
+	}
+
+	if lines_length > 0 {
+		line_cleared = true
+		for i := lines[lines_length-1] + 1; i < 24; i++ {
+			if i < 21 {
+				a := 0
+				for j := 0; j < 10; j++ {
+					if i-lines_length+a > -1 {
+						game.PlayingBoard[Point{i - lines_length, j}] = game.PlayingBoard[Point{i, j}]
+					}
+				}
+				for j := 0; j < 10; j++ {
+					if i-lines_length > -1 {
+						game.PlayingBoard[Point{i, j}] = Pixel(0)
+					}
+				}
+			}
+		}
+	}
+	return line_cleared
 }

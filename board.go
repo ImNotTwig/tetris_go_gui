@@ -26,7 +26,7 @@ type Tetro int
 // Z: 7
 
 // a shape is a list of points, usually 4, that makes up a tetromino
-type Shape [4]Point
+type Shape []Point
 
 type Tetromino struct {
 	Shape Shape
@@ -34,15 +34,14 @@ type Tetromino struct {
 }
 
 // the playing board which is a 2-D array that has all the data for the pixels on it
-type Board [][]Pixel
+type Board map[Point]Pixel
 
 // returns a new board with an initialized 2-D array
 func NewBoard() Board {
-	var b Board
+	b := make(map[Point]Pixel, 0)
 	for i := 0; i < 24; i++ {
-		b = append(b, make([]Pixel, 0))
 		for j := 0; j < 10; j++ {
-			b[i] = append(b[i], Pixel(0))
+			b[Point{i, j}] = Pixel(0)
 		}
 	}
 
@@ -55,52 +54,52 @@ func (t Tetro) TetroToNewShape() Shape {
 	switch t {
 	case 2: // L
 		retShape = Shape{
-			Point{Row: 1 + 20, Col: 0 + 4},
-			Point{Row: 1 + 20, Col: 1 + 4},
-			Point{Row: 1 + 20, Col: 2 + 4},
-			Point{Row: 0 + 20, Col: 0 + 4},
+			Point{Row: 1 + 22, Col: 0 + 4},
+			Point{Row: 1 + 22, Col: 1 + 4},
+			Point{Row: 1 + 22, Col: 2 + 4},
+			Point{Row: 0 + 22, Col: 0 + 4},
 		}
 	case 4: // I
 		retShape = Shape{
-			Point{Row: 1 + 20, Col: 0 + 4},
-			Point{Row: 1 + 20, Col: 1 + 4},
-			Point{Row: 1 + 20, Col: 2 + 4},
-			Point{Row: 1 + 20, Col: 3 + 4},
+			Point{Row: 1 + 22, Col: 0 + 4},
+			Point{Row: 1 + 22, Col: 1 + 4},
+			Point{Row: 1 + 22, Col: 2 + 4},
+			Point{Row: 1 + 22, Col: 3 + 4},
 		}
 	case 1: // O
 		retShape = Shape{
-			Point{Row: 1 + 20, Col: 0 + 4},
-			Point{Row: 1 + 20, Col: 1 + 4},
-			Point{Row: 0 + 20, Col: 0 + 4},
-			Point{Row: 0 + 20, Col: 1 + 4},
+			Point{Row: 1 + 22, Col: 0 + 4},
+			Point{Row: 1 + 22, Col: 1 + 4},
+			Point{Row: 0 + 22, Col: 0 + 4},
+			Point{Row: 0 + 22, Col: 1 + 4},
 		}
 	case 5: // T
 		retShape = Shape{
-			Point{Row: 1 + 20, Col: 0 + 4},
-			Point{Row: 1 + 20, Col: 1 + 4},
-			Point{Row: 1 + 20, Col: 2 + 4},
-			Point{Row: 0 + 20, Col: 1 + 4},
+			Point{Row: 1 + 22, Col: 0 + 4},
+			Point{Row: 1 + 22, Col: 1 + 4},
+			Point{Row: 1 + 22, Col: 2 + 4},
+			Point{Row: 0 + 22, Col: 1 + 4},
 		}
 	case 6: // S
 		retShape = Shape{
-			Point{Row: 0 + 20, Col: 0 + 4},
-			Point{Row: 0 + 20, Col: 1 + 4},
-			Point{Row: 1 + 20, Col: 1 + 4},
-			Point{Row: 1 + 20, Col: 2 + 4},
+			Point{Row: 0 + 22, Col: 0 + 4},
+			Point{Row: 0 + 22, Col: 1 + 4},
+			Point{Row: 1 + 22, Col: 1 + 4},
+			Point{Row: 1 + 22, Col: 2 + 4},
 		}
 	case 7: // Z
 		retShape = Shape{
-			Point{Row: 1 + 20, Col: 0 + 4},
-			Point{Row: 1 + 20, Col: 1 + 4},
-			Point{Row: 0 + 20, Col: 1 + 4},
-			Point{Row: 0 + 20, Col: 2 + 4},
+			Point{Row: 1 + 22, Col: 0 + 4},
+			Point{Row: 1 + 22, Col: 1 + 4},
+			Point{Row: 0 + 22, Col: 1 + 4},
+			Point{Row: 0 + 22, Col: 2 + 4},
 		}
 	case 3: // J
 		retShape = Shape{
-			Point{Row: 1 + 20, Col: 0 + 4},
-			Point{Row: 0 + 20, Col: 1 + 4},
-			Point{Row: 0 + 20, Col: 0 + 4},
-			Point{Row: 0 + 20, Col: 2 + 4},
+			Point{Row: 1 + 22, Col: 0 + 4},
+			Point{Row: 0 + 22, Col: 1 + 4},
+			Point{Row: 0 + 22, Col: 0 + 4},
+			Point{Row: 0 + 22, Col: 2 + 4},
 		}
 	default:
 		panic(fmt.Sprintf("Invalid integer passed into TetroToShape: %v", t))
