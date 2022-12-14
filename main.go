@@ -9,6 +9,7 @@ import (
 	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
 	"github.com/faiface/pixel/text"
+
 	"github.com/goki/freetype/truetype"
 	"golang.org/x/image/font/gofont/goregular"
 )
@@ -80,10 +81,17 @@ func run() {
 			break
 		}
 		imd.Reset()
+
+		if line_cleared {
+			hard_dropped = false
+			lock_time = time.Now()
+			line_cleared = false
+			drop_time = time.Now()
+		}
+
 		if !line_cleared && !hard_dropped {
 			if win.Pressed(pixelgl.KeyRight) {
-				if !game.CheckIfSomethingRight(game.CurrentPiece.Shape) && time.Now().After(move_time.Add(time.Millisecond*time.Duration(50))) {
-
+				if !game.CheckIfSomethingRight() && time.Now().After(move_time.Add(time.Millisecond*time.Duration(50))) {
 					move_time = time.Now()
 					game.MoveRight()
 				}
@@ -92,7 +100,7 @@ func run() {
 				lock_time = time.Now()
 			}
 			if win.Pressed(pixelgl.KeyLeft) {
-				if !game.CheckIfSomethingLeft(game.CurrentPiece.Shape) && time.Now().After(move_time.Add(time.Millisecond*time.Duration(50))) {
+				if !game.CheckIfSomethingLeft() && time.Now().After(move_time.Add(time.Millisecond*time.Duration(50))) {
 					move_time = time.Now()
 					game.MoveLeft()
 				}
@@ -170,7 +178,7 @@ func run() {
 			}
 		}
 		if !can_drop {
-			can_drop = game.check_lines()
+			line_cleared = game.check_lines()
 		}
 
 		imd.Color = color.RGBA{100, 100, 100, 100}

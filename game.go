@@ -130,34 +130,33 @@ func (g *Game) GetRandomTetromino() {
 	}
 }
 
-func (g *Game) CheckIfSomethingUnder(s Shape) bool {
-	for i := 0; i < len(s); i++ {
-		x := s[i].Col
-		y := s[i].Row
-		if y != 0 {
-			if g.PlayingBoard[Point{y - 1, x}] != Pixel(0) && !ContainsShape(s, &Point{Row: y - 1, Col: x}) {
+func (g *Game) CheckIfSomethingUnder() bool {
+	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
+		if g.CurrentPiece.Shape[i].Row != 0 {
+			if g.PlayingBoard[Point{g.CurrentPiece.Shape[i].Row - 1, g.CurrentPiece.Shape[i].Col}] != Pixel(0) &&
+				!ContainsShape(g.CurrentPiece.Shape, &Point{Row: g.CurrentPiece.Shape[i].Row - 1, Col: g.CurrentPiece.Shape[i].Col}) {
 				return true
 			}
 		}
 	}
 	return false
 }
-func (g *Game) CheckIfSomethingRight(s Shape) bool {
-	for i := 0; i < len(s); i++ {
-		if s[i].Col+1 < 10 {
-			if g.PlayingBoard[Point{s[i].Row, s[i].Col + 1}] != Pixel(0) &&
-				!ContainsShape(s, &Point{Row: s[i].Row, Col: s[i].Col + 1}) {
+func (g *Game) CheckIfSomethingRight() bool {
+	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
+		if g.CurrentPiece.Shape[i].Col+1 < 10 {
+			if g.PlayingBoard[Point{g.CurrentPiece.Shape[i].Row, g.CurrentPiece.Shape[i].Col + 1}] != Pixel(0) &&
+				!ContainsShape(g.CurrentPiece.Shape, &Point{Row: g.CurrentPiece.Shape[i].Row, Col: g.CurrentPiece.Shape[i].Col + 1}) {
 				return true
 			}
 		}
 	}
 	return false
 }
-func (g *Game) CheckIfSomethingLeft(s Shape) bool {
-	for i := 0; i < len(s); i++ {
-		if s[i].Col-1 > 0 {
-			if g.PlayingBoard[Point{s[i].Row, s[i].Col - 1}] != Pixel(0) &&
-				!ContainsShape(s, &Point{Row: s[i].Row, Col: s[i].Col - 1}) {
+func (g *Game) CheckIfSomethingLeft() bool {
+	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
+		if g.CurrentPiece.Shape[i].Col-1 > -1 {
+			if g.PlayingBoard[Point{g.CurrentPiece.Shape[i].Row, g.CurrentPiece.Shape[i].Col - 1}] != Pixel(0) &&
+				!ContainsShape(g.CurrentPiece.Shape, &Point{Row: g.CurrentPiece.Shape[i].Row, Col: g.CurrentPiece.Shape[i].Col - 1}) {
 				return true
 			}
 		}
@@ -172,7 +171,7 @@ func (g *Game) GravityDrop() bool {
 		}
 	}
 
-	if g.CheckIfSomethingUnder(g.CurrentPiece.Shape) {
+	if g.CheckIfSomethingUnder() {
 		return false
 	}
 
@@ -195,7 +194,7 @@ func (g *Game) MoveRight() bool {
 		}
 	}
 
-	if g.CheckIfSomethingRight(g.CurrentPiece.Shape) {
+	if g.CheckIfSomethingRight() {
 		return false
 	}
 
@@ -218,7 +217,7 @@ func (g *Game) MoveLeft() bool {
 		}
 	}
 
-	if g.CheckIfSomethingLeft(g.CurrentPiece.Shape) {
+	if g.CheckIfSomethingLeft() {
 		return false
 	}
 
@@ -335,10 +334,6 @@ func (game *Game) check_lines() bool {
 	}
 
 	lines_length := len(lines)
-	println("length", lines_length)
-	for line := 0; line < len(lines); line++ {
-		println("line: ", lines[line])
-	}
 
 	if lines_length > 0 {
 		line_cleared = true
