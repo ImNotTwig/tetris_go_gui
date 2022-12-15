@@ -1,7 +1,17 @@
 1st thing is to get the board set up and to spawn tetros above the board 
-
 then make them fall
-
 then see if they fun into something
-
 then add movement
+
+
+For the ghost tetromino: 
+    
+    first, get the location of the current tetro, 
+
+    second, see how far we can go down,
+
+    third, add those coordinates the a ghost tetro variable in the game struct,
+
+    fourth, display those on the board,
+
+    * to display them on the board we will simply see when the coord we're on when we're displaying the boards pixels, is in the ghost pieces coords

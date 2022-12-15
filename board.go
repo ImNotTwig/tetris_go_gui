@@ -141,6 +141,9 @@ func (t Tetro) TetroToColor() color.RGBA {
 		// Z
 	case 7:
 		return color.RGBA{243, 139, 168, 255}
+		// Ghost piece
+	case 8:
+		return color.RGBA{166, 173, 200, 255}
 	}
 
 	panic(fmt.Sprintf("Invalid integer passed into TetroToColor: %v", t))

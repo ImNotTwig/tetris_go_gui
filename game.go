@@ -35,6 +35,8 @@ type Game struct {
 
 	Score int
 
+	LinesCleared int
+
 	Level int
 
 	GameOver bool
@@ -52,7 +54,8 @@ func NewGame() Game {
 		CanHold:            true,
 		Current7Bag:        nil,
 		Score:              0,
-		Level:              0,
+		LinesCleared:       0,
+		Level:              1,
 		GameOver:           false,
 		Paused:             false,
 		FallingSpeedMillis: 300,
@@ -130,13 +133,18 @@ func (g *Game) GetRandomTetromino() {
 	}
 }
 
-func (g *Game) CheckIfSomethingUnder() bool {
-	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
-		if g.CurrentPiece.Shape[i].Row != 0 {
-			if g.PlayingBoard[Point{g.CurrentPiece.Shape[i].Row - 1, g.CurrentPiece.Shape[i].Col}] != Pixel(0) &&
-				!ContainsShape(g.CurrentPiece.Shape, &Point{Row: g.CurrentPiece.Shape[i].Row - 1, Col: g.CurrentPiece.Shape[i].Col}) {
+func (g *Game) CheckIfSomethingUnder(s *Shape) bool {
+	if s == nil {
+		s = &g.CurrentPiece.Shape
+	}
+	for i := 0; i < len(*s); i++ {
+		if (*s)[i].Row != 0 {
+			if g.PlayingBoard[Point{(*s)[i].Row - 1, (*s)[i].Col}] != Pixel(0) &&
+				!ContainsShape(*s, &Point{Row: (*s)[i].Row - 1, Col: (*s)[i].Col}) {
 				return true
 			}
+		} else {
+			return true
 		}
 	}
 	return false
@@ -171,7 +179,7 @@ func (g *Game) GravityDrop() bool {
 		}
 	}
 
-	if g.CheckIfSomethingUnder() {
+	if g.CheckIfSomethingUnder(nil) {
 		return false
 	}
 
@@ -353,6 +361,25 @@ func (game *Game) check_lines() bool {
 			}
 		}
 	}
+
+	game.LinesCleared += lines_length
+
+	game.Level = int(game.LinesCleared / 10)
+	if game.Level == 0 {
+		game.Level = 1
+	}
+
+	switch lines_length {
+	case 1:
+		game.Score += 40 * game.Level
+	case 2:
+		game.Score += 100 * game.Level
+	case 3:
+		game.Score += 300 * game.Level
+	case 4:
+		game.Score += 1200 * game.Level
+	}
+
 	return line_cleared
 }
 
