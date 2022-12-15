@@ -47,7 +47,8 @@ type Game struct {
 	// is the game paused
 	Paused bool
 
-	// how many milliseconds should it take for the piece to fall a pixel
+	// how many milliseconds should it take for the piece to fall a pixel,
+	// this is divided by the level so when we go up in level the speed of the falling pieces also goes up
 	FallingSpeedMillis int
 }
 
@@ -64,7 +65,7 @@ func NewGame() Game {
 		Level:              1,
 		GameOver:           false,
 		Paused:             false,
-		FallingSpeedMillis: 300,
+		FallingSpeedMillis: 600,
 	}
 }
 

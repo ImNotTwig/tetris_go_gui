@@ -204,7 +204,7 @@ func run() {
 				game.CanHold = true
 			}
 			// if now is after the move timer, then move the piece down naturally
-			if time.Now().After(drop_time.Add(time.Millisecond * time.Duration(game.FallingSpeedMillis))) {
+			if time.Now().After(drop_time.Add(time.Millisecond * time.Duration(game.FallingSpeedMillis/game.Level))) {
 				// if a line has not been cleared, drop the piece
 				if !line_cleared {
 					can_drop = game.GravityDrop()
