@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// this function checks if a point is in a shape
 func ContainsShape(sl Shape, point *Point) bool {
 	for _, v := range sl {
 		if v == *point {
@@ -13,39 +14,44 @@ func ContainsShape(sl Shape, point *Point) bool {
 	}
 	return false
 }
-func ContainsSlice(sl []*Point, point *Point) bool {
-	for _, v := range sl {
-		if v == point {
-			return true
-		}
-	}
-	return false
-}
 
+// the main game struct for the game loop, and controlling score and whatnot, everything to do with the game is in this struct
 type Game struct {
+	// this playing board is a map of Points, I used this instead of a 2d array
 	PlayingBoard Board
 
+	// the current tetro thats falling
 	CurrentPiece *Tetromino
 
+	// the held piece, this is an int because we convert it to a tetro when it starts falling
 	HeldPiece int
 
+	// can we hold a piece, aka, have we already held a piece since a piece has fallen
 	CanHold bool
 
+	// the current list of tetros in the bag, which acts as a queue
 	Current7Bag []*Tetromino
 
+	// the current score of the game
 	Score int
 
+	// the total amount of lines that have been cleared, this is used to determine the level
 	LinesCleared int
 
+	// the current level of the game
 	Level int
 
+	// is the game over, have we places a tetro above the board, and does every line have a taken pixel
 	GameOver bool
 
+	// is the game paused
 	Paused bool
 
+	// how many milliseconds should it take for the piece to fall a pixel
 	FallingSpeedMillis int
 }
 
+// returns a new game with defaults
 func NewGame() Game {
 	return Game{
 		PlayingBoard:       NewBoard(),
@@ -62,6 +68,7 @@ func NewGame() Game {
 	}
 }
 
+// generates a new 7bag, this is used when the game is started, and when the bag is empty
 func (g *Game) GenerateNewBag() {
 	if g.Current7Bag == nil || len(g.Current7Bag) == 0 {
 		r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -104,6 +111,7 @@ func (g *Game) GenerateNewBag() {
 	}
 }
 
+// gets the next tetro from the bag and sets it as the current tetro, then pops it from the bag
 func (g *Game) SetNextTetroFromBag() {
 	if len(g.Current7Bag) > 0 {
 		g.CurrentPiece = g.Current7Bag[0]
@@ -116,6 +124,7 @@ func (g *Game) SetNextTetroFromBag() {
 	}
 }
 
+// gets a random tetro, this is seperate from the 7bag
 func (g *Game) GetRandomTetromino() {
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -133,6 +142,7 @@ func (g *Game) GetRandomTetromino() {
 	}
 }
 
+// checks if something is under the current tetro
 func (g *Game) CheckIfSomethingUnder(s *Shape) bool {
 	if s == nil {
 		s = &g.CurrentPiece.Shape
@@ -149,9 +159,11 @@ func (g *Game) CheckIfSomethingUnder(s *Shape) bool {
 	}
 	return false
 }
+
+// checks if something is to the right of the current tetro
 func (g *Game) CheckIfSomethingRight() bool {
 	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
-		if g.CurrentPiece.Shape[i].Col+1 < 10 {
+		if g.CurrentPiece.Shape[i].Col+1 < WidthOfBoardInPixels {
 			if g.PlayingBoard[Point{g.CurrentPiece.Shape[i].Row, g.CurrentPiece.Shape[i].Col + 1}] != Pixel(0) &&
 				!ContainsShape(g.CurrentPiece.Shape, &Point{Row: g.CurrentPiece.Shape[i].Row, Col: g.CurrentPiece.Shape[i].Col + 1}) {
 				return true
@@ -160,6 +172,8 @@ func (g *Game) CheckIfSomethingRight() bool {
 	}
 	return false
 }
+
+// checks if something is to the left of the current tetro
 func (g *Game) CheckIfSomethingLeft() bool {
 	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
 		if g.CurrentPiece.Shape[i].Col-1 > -1 {
@@ -172,6 +186,7 @@ func (g *Game) CheckIfSomethingLeft() bool {
 	return false
 }
 
+// moves the current tetro down
 func (g *Game) GravityDrop() bool {
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
 		if g.CurrentPiece.Shape[j].Row-1 < 0 {
@@ -195,9 +210,10 @@ func (g *Game) GravityDrop() bool {
 	return true
 }
 
+// moves the current tetro right
 func (g *Game) MoveRight() bool {
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
-		if g.CurrentPiece.Shape[j].Col+1 >= 10 {
+		if g.CurrentPiece.Shape[j].Col+1 >= WidthOfBoardInPixels {
 			return false
 		}
 	}
@@ -218,6 +234,7 @@ func (g *Game) MoveRight() bool {
 	return true
 }
 
+// moves the current tetro to the left
 func (g *Game) MoveLeft() bool {
 	for j := 0; j < len(g.CurrentPiece.Shape); j++ {
 		if g.CurrentPiece.Shape[j].Col-1 < 0 {
@@ -241,13 +258,7 @@ func (g *Game) MoveLeft() bool {
 	return true
 }
 
-func (g *Game) ClearShape() {
-	for i := 0; i < len(g.CurrentPiece.Shape); i++ {
-		g.PlayingBoard[Point{g.CurrentPiece.Shape[i].Row, g.CurrentPiece.Shape[i].Col}] = Pixel(0)
-	}
-	g.CurrentPiece.Shape = Shape{}
-}
-
+// rotates the falling piece clockwise, if it can
 func (g *Game) RotateClockWise() bool {
 	var retShape Shape
 	for i := 0; i < 4; i++ {
@@ -286,9 +297,9 @@ func (g *Game) RotateClockWise() bool {
 			}
 			break
 		}
-		if retShape[i].Col >= 10 {
+		if retShape[i].Col >= WidthOfBoardInPixels {
 			sub := retShape[i].Col
-			for sub >= 10 {
+			for sub >= WidthOfBoardInPixels {
 				for j := 0; j < len(retShape); j++ {
 					retShape[j].Col -= 1
 				}
@@ -296,9 +307,9 @@ func (g *Game) RotateClockWise() bool {
 			}
 			break
 		}
-		if retShape[i].Row >= 24 {
+		if retShape[i].Row >= HeightOfBoardInPixels {
 			sub := retShape[i].Row
-			for sub >= 24 {
+			for sub >= HeightOfBoardInPixels {
 				for j := 0; j < len(retShape); j++ {
 					retShape[j].Row -= 1
 				}
@@ -327,11 +338,12 @@ func (g *Game) RotateClockWise() bool {
 	return true
 }
 
+// check for lines that should be cleared
 func (game *Game) check_lines() bool {
 	lines := make([]int, 0)
 	for i := 0; i < len(game.PlayingBoard); i++ {
 		line_cleared = true
-		for j := 0; j < 10; j++ {
+		for j := 0; j < WidthOfBoardInPixels; j++ {
 			if game.PlayingBoard[Point{i, j}] == Pixel(0) {
 				line_cleared = false
 			}
@@ -341,20 +353,18 @@ func (game *Game) check_lines() bool {
 		}
 	}
 
-	lines_length := len(lines)
-
-	if lines_length > 0 {
+	if len(lines) > 0 {
 		line_cleared = true
-		for i := lines[lines_length-1] + 1; i < 24; i++ {
+		for i := lines[len(lines)-1] + 1; i < HeightOfBoardInPixels; i++ {
 			if i < 21 {
 				a := 0
-				for j := 0; j < 10; j++ {
-					if i-lines_length+a > -1 {
-						game.PlayingBoard[Point{i - lines_length, j}] = game.PlayingBoard[Point{i, j}]
+				for j := 0; j < WidthOfBoardInPixels; j++ {
+					if i-len(lines)+a > -1 {
+						game.PlayingBoard[Point{i - len(lines), j}] = game.PlayingBoard[Point{i, j}]
 					}
 				}
-				for j := 0; j < 10; j++ {
-					if i-lines_length > -1 {
+				for j := 0; j < WidthOfBoardInPixels; j++ {
+					if i-len(lines) > -1 {
 						game.PlayingBoard[Point{i, j}] = Pixel(0)
 					}
 				}
@@ -362,14 +372,15 @@ func (game *Game) check_lines() bool {
 		}
 	}
 
-	game.LinesCleared += lines_length
+	game.LinesCleared += len(lines)
 
 	game.Level = int(game.LinesCleared / 10)
+
 	if game.Level == 0 {
 		game.Level = 1
 	}
 
-	switch lines_length {
+	switch len(lines) {
 	case 1:
 		game.Score += 40 * game.Level
 	case 2:
@@ -383,6 +394,7 @@ func (game *Game) check_lines() bool {
 	return line_cleared
 }
 
+// swap the current piece with the held piece
 func (g *Game) HoldTetro() {
 	if !g.CanHold {
 		return

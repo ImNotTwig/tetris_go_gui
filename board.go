@@ -39,8 +39,8 @@ type Board map[Point]Pixel
 // returns a new board with an initialized 2-D array
 func NewBoard() Board {
 	b := make(map[Point]Pixel, 0)
-	for i := 0; i < 24; i++ {
-		for j := 0; j < 10; j++ {
+	for i := 0; i < HeightOfBoardInPixels; i++ {
+		for j := 0; j < WidthOfBoardInPixels; j++ {
 			b[Point{i, j}] = Pixel(0)
 		}
 	}
